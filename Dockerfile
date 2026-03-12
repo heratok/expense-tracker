@@ -11,6 +11,7 @@ COPY src ./src
 ENV PORT=5000 \
     NODE_ENV=production \
     MONGO_URI=mongodb://mongo:27017/expense_tracker \
+    CLIENT_ORIGIN=* \
     JWT_SECRET=change_me_in_production \
     JWT_EXPIRES_IN=7d
 

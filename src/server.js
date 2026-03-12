@@ -23,8 +23,25 @@ if (mongoUri.includes("mongodb://mongo") && !runningInDocker) {
 }
 
 app.use(express.json());
-// CORS abierto: acepta peticiones de cualquier origen
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:3000,http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowAllOrigins = allowedOrigins.includes("*");
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Permite herramientas sin origin (curl, postman), todos los orígenes con '*',
+      // o solo los orígenes configurados.
+      if (!origin || allowAllOrigins || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true
+  })
+);
 app.use(morgan("dev"));
 
 app.get("/", (req, res) => {
