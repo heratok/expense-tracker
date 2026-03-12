@@ -23,12 +23,8 @@ if (mongoUri.includes("mongodb://mongo") && !runningInDocker) {
 }
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
-    credentials: false
-  })
-);
+// CORS abierto: acepta peticiones de cualquier origen
+app.use(cors());
 app.use(morgan("dev"));
 
 app.get("/", (req, res) => {
