@@ -14,7 +14,7 @@ API REST para gestionar gastos personales, presupuestos y dashboards. Construido
 
 ## Instalación
 
-### Opción 1: Local (Node + MongoDB local)
+### Opción 1: Local (Node + MongoDB Atlas)
 
 ```bash
 # Entrar en la carpeta backend
@@ -33,7 +33,7 @@ npm run dev
 npm start
 ```
 
-### Opción 2: Docker (Backend + MongoDB)
+### Opción 2: Docker (solo backend)
 
 ```bash
 # Desde la carpeta backend
@@ -57,16 +57,17 @@ docker compose down
 **`.env`**
 ```
 PORT=5000
-MONGO_URI=mongodb://localhost:27017/expense_tracker
+MONGO_URI=mongodb+srv://test:<db_password>@cluster0test.legic3o.mongodb.net/?appName=Cluster0test
 JWT_SECRET=tu_secret_muy_seguro_aqui
-CLIENT_ORIGIN=http://localhost:5173
 JWT_EXPIRES_IN=7d
 ```
+
+Reemplaza <db_password> por la contraseña real del usuario de Atlas.
 
 ## Requisitos
 
 - Node.js 18+
-- MongoDB 5.0+ (local o Atlas)
+- MongoDB Atlas (cluster con SRV)
 - npm o yarn
 - Docker + Docker Compose (opcional)
 
@@ -80,21 +81,47 @@ docker compose up --build
 ```
 
 **Esto levanta:**
-- MongoDB en puerto 27017
 - Backend en puerto 5000
-- Volúmenes para desarrollo en vivo
 
-**Variables de entorno (docker-compose.yml):**
-- `MONGO_URI=mongodb://mongo:27017/expense_tracker`
-- `JWT_SECRET=change_me_in_production` (cambiar en producción)
+**Variables de entorno:**
+- Docker Compose carga automáticamente `.env` (con `MONGO_URI`, `JWT_SECRET`, etc.)
+
+Ejemplo de despliegue usando variables del `.env`:
+
+```bash
+docker compose up -d --build
+```
 
 ### Detener containers
 
 ```bash
 docker compose down        # Detiene y elimina containers
-docker compose down -v     # También elimina volúmenes
 docker compose logs -f     # Ver logs en vivo
 ```
+
+## Despliegue en AWS Elastic Beanstalk
+
+Para Elastic Beanstalk, configura las variables en el entorno de AWS (no en `.env` del servidor).
+
+Variables mínimas requeridas:
+
+- `MONGO_URI=mongodb+srv://test:<db_password>@cluster0test.legic3o.mongodb.net/?appName=Cluster0test`
+- `JWT_SECRET=tu_secret_muy_seguro_aqui`
+- `JWT_EXPIRES_IN=7d`
+
+Con EB CLI:
+
+```bash
+eb init
+eb create expense-tracker-prod
+eb setenv MONGO_URI='mongodb+srv://test:<db_password>@cluster0test.legic3o.mongodb.net/?appName=Cluster0test' JWT_SECRET='tu_secret_muy_seguro_aqui' JWT_EXPIRES_IN='7d'
+eb deploy
+```
+
+Notas:
+
+- No subas `.env` a producción.
+- La app usa `process.env`, así que quedará conectada automáticamente a Atlas en cada deploy.
 
 ## Endpoints
 
