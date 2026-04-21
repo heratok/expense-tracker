@@ -22,10 +22,17 @@ app.get("/", (req, res) => {
   res.json({ status: "ok", service: "expense-tracker-api" });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/expenses", expenseRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/budget", budgetRoutes);
+const routeMounts = [
+  ["auth", authRoutes],
+  ["expenses", expenseRoutes],
+  ["dashboard", dashboardRoutes],
+  ["budget", budgetRoutes]
+];
+
+routeMounts.forEach(([segment, router]) => {
+  app.use(`/api/${segment}`, router);
+  app.use(`/${segment}`, router);
+});
 
 app.use(notFound);
 app.use(errorHandler);
