@@ -1,27 +1,62 @@
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 
-const sns = new SNSClient({ region: process.env.AWS_REGION });
-const sqs = new SQSClient({ region: process.env.AWS_REGION });
+console.log("[AWS-SERVICE] Iniciando modulo AWS Service");
+console.log("[AWS-SERVICE] AWS_REGION:", process.env.AWS_REGION);
+console.log("[AWS-SERVICE] SNS_TOPIC_ARN:", process.env.SNS_TOPIC_ARN);
+console.log("[AWS-SERVICE] SQS_QUEUE_URL:", process.env.SQS_QUEUE_URL);
+console.log("[AWS-SERVICE] AWS_ACCESS_KEY_ID set:", !!process.env.AWS_ACCESS_KEY_ID);
+console.log("[AWS-SERVICE] AWS_SECRET_ACCESS_KEY set:", !!process.env.AWS_SECRET_ACCESS_KEY);
+console.log("[AWS-SERVICE] AWS_SESSION_TOKEN set:", !!process.env.AWS_SESSION_TOKEN);
+
+const snsConfig = { region: process.env.AWS_REGION };
+if (process.env.AWS_ACCESS_KEY_ID) {
+  snsConfig.credentials = {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    sessionToken: process.env.AWS_SESSION_TOKEN
+  };
+}
+
+const sqsConfig = { region: process.env.AWS_REGION };
+if (process.env.AWS_ACCESS_KEY_ID) {
+  sqsConfig.credentials = {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    sessionToken: process.env.AWS_SESSION_TOKEN
+  };
+}
+
+const sns = new SNSClient(snsConfig);
+const sqs = new SQSClient(sqsConfig);
 
 export const enviarNotificacionRegistro = async (email, nombre) => {
+  console.log("[SNS-REGISTRO] Iniciando envio de notificacion de registro");
+  console.log("[SNS-REGISTRO] Email:", email, "Nombre:", nombre);
+  console.log("[SNS-REGISTRO] TopicArn:", process.env.SNS_TOPIC_ARN);
   try {
-    await sns.send(
+    const result = await sns.send(
       new PublishCommand({
         TopicArn: process.env.SNS_TOPIC_ARN,
         Subject: "Nuevo Usuario Registrado - Expense Tracker",
         Message: `Se ha registrado un nuevo usuario!\n\nEmail: ${email}\nNombre: ${nombre}\nFecha: ${new Date().toISOString()}`
       })
     );
-    console.log("Notificacion de registro enviada:", email);
+    console.log("[SNS-REGISTRO] EXITO! MessageId:", result.MessageId);
   } catch (error) {
-    console.error("Error SNS registro:", error);
+    console.error("[SNS-REGISTRO] ERROR nombre:", error.name);
+    console.error("[SNS-REGISTRO] ERROR mensaje:", error.message);
+    console.error("[SNS-REGISTRO] ERROR code:", error.Code || error.$metadata?.httpStatusCode);
+    console.error("[SNS-REGISTRO] ERROR completo:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
   }
 };
 
 export const encolarGasto = async (userId, expenseId, amount, category, description, email) => {
+  console.log("[SQS-GASTO] Iniciando encolado de gasto");
+  console.log("[SQS-GASTO] expenseId:", expenseId, "amount:", amount, "category:", category);
+  console.log("[SQS-GASTO] QueueUrl:", process.env.SQS_QUEUE_URL);
   try {
-    await sqs.send(
+    const result = await sqs.send(
       new SendMessageCommand({
         QueueUrl: process.env.SQS_QUEUE_URL,
         MessageBody: JSON.stringify({
@@ -36,8 +71,11 @@ export const encolarGasto = async (userId, expenseId, amount, category, descript
         })
       })
     );
-    console.log("Gasto encolado:", expenseId);
+    console.log("[SQS-GASTO] EXITO! MessageId:", result.MessageId);
   } catch (error) {
-    console.error("Error SQS:", error);
+    console.error("[SQS-GASTO] ERROR nombre:", error.name);
+    console.error("[SQS-GASTO] ERROR mensaje:", error.message);
+    console.error("[SQS-GASTO] ERROR code:", error.Code || error.$metadata?.httpStatusCode);
+    console.error("[SQS-GASTO] ERROR completo:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
   }
 };
