@@ -11,6 +11,15 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 dotenv.config();
 
+console.log("=== SERVER STARTUP V8 ===");
+console.log("AWS_REGION:", process.env.AWS_REGION);
+console.log("SNS_TOPIC_ARN:", process.env.SNS_TOPIC_ARN);
+console.log("SQS_QUEUE_URL:", process.env.SQS_QUEUE_URL);
+console.log("AWS_ACCESS_KEY_ID set:", !!process.env.AWS_ACCESS_KEY_ID);
+console.log("AWS_SECRET_ACCESS_KEY set:", !!process.env.AWS_SECRET_ACCESS_KEY);
+console.log("AWS_SESSION_TOKEN set:", !!process.env.AWS_SESSION_TOKEN);
+console.log("=== END STARTUP ===");
+
 const app = express();
 
 app.use(express.json());
