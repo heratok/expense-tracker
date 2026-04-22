@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import { generateToken } from "../utils/token.js";
-import { enviarEmailBienvenida } from "../services/awsService.js";
+import { enviarNotificacionRegistro } from "../services/awsService.js";
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -16,7 +16,7 @@ export const registerUser = async (req, res, next) => {
     const hashed = await bcrypt.hash(password, salt);
 
     const user = await User.create({ name, email, password: hashed });
-    await enviarEmailBienvenida(user.email, user.name);
+    await enviarNotificacionRegistro(user.email, user.name);
     const token = generateToken({ id: user._id });
 
     return res.status(201).json({

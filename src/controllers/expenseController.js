@@ -1,4 +1,5 @@
 import Expense from "../models/Expense.js";
+import User from "../models/User.js";
 import { encolarGasto } from "../services/awsService.js";
 
 export const getExpenses = async (req, res, next) => {
@@ -39,7 +40,8 @@ export const createExpense = async (req, res, next) => {
       date: date ? new Date(date) : new Date()
     });
 
-    await encolarGasto(expense.user, expense._id, expense.amount);
+    const user = await User.findById(req.user.id);
+    await encolarGasto(expense.user, expense._id, expense.amount, expense.category, expense.description, user?.email);
 
     return res.status(201).json(expense);
   } catch (error) {

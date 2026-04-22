@@ -4,22 +4,22 @@ import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 const sns = new SNSClient({ region: process.env.AWS_REGION });
 const sqs = new SQSClient({ region: process.env.AWS_REGION });
 
-export const enviarEmailBienvenida = async (email, nombre) => {
+export const enviarNotificacionRegistro = async (email, nombre) => {
   try {
     await sns.send(
       new PublishCommand({
         TopicArn: process.env.SNS_TOPIC_ARN,
-        Subject: "Bienvenido a Expense Tracker",
-        Message: `Hola ${nombre}, tu cuenta fue creada exitosamente.`
+        Subject: "Nuevo Usuario Registrado - Expense Tracker",
+        Message: `Se ha registrado un nuevo usuario!\n\nEmail: ${email}\nNombre: ${nombre}\nFecha: ${new Date().toISOString()}`
       })
     );
-    console.log("Email de bienvenida enviado:", email);
+    console.log("Notificacion de registro enviada:", email);
   } catch (error) {
-    console.error("Error SNS:", error);
+    console.error("Error SNS registro:", error);
   }
 };
 
-export const encolarGasto = async (userId, expenseId, amount) => {
+export const encolarGasto = async (userId, expenseId, amount, category, description, email) => {
   try {
     await sqs.send(
       new SendMessageCommand({
@@ -29,6 +29,9 @@ export const encolarGasto = async (userId, expenseId, amount) => {
           userId,
           expenseId,
           amount,
+          category,
+          description,
+          email,
           timestamp: new Date().toISOString()
         })
       })
