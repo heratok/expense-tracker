@@ -85,18 +85,41 @@ export const deleteExpense = async (req, res, next) => {
   }
 };
 
+const toCsvValue = (value) => {
+  if (value === null || value === undefined) return "";
+  const stringValue = String(value);
+  const escaped = stringValue.replace(/"/g, '""');
+  return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
+};
+
 export const exportExpenses = async (req, res, next) => {
   try {
     const { fechaInicio, fechaFin, categoria } = req.body;
-    const filtros = {};
+    const filters = { user: req.user.id };
 
-    if (categoria) filtros.categoria = categoria;
-    if (fechaInicio) filtros.fechaInicio = fechaInicio;
-    if (fechaFin) filtros.fechaFin = fechaFin;
+    if (categoria) filters.category = categoria;
+    if (fechaInicio || fechaFin) {
+      filters.date = {};
+      if (fechaInicio) filters.date.$gte = new Date(fechaInicio);
+      if (fechaFin) filters.date.$lte = new Date(fechaFin);
+    }
 
-    await encolarExportacionSQS(req.user.id, filtros);
+    const expenses = await Expense.find(filters).sort({ date: -1 }).lean();
+    const headers = ["Fecha", "Descripcion", "Categoria", "Monto"];
+    const rows = expenses.map((expense) => {
+      const safeDate = expense.date ? new Date(expense.date).toISOString().split("T")[0] : "";
+      const safeDescription = expense.description || "";
+      const safeCategory = expense.category || "";
+      const safeAmount = typeof expense.amount === "number" ? expense.amount.toFixed(2) : "0.00";
+      return [safeDate, safeDescription, safeCategory, safeAmount].map(toCsvValue).join(",");
+    });
 
-    return res.json({ message: "Exportación iniciada. Recibirás el enlace por email." });
+    const csv = [headers.join(","), ...rows].join("\n");
+    const fileName = `gastos-${new Date().toISOString().split("T")[0]}.csv`;
+
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    return res.status(200).send(csv);
   } catch (error) {
     return next(error);
   }
