@@ -5,6 +5,7 @@ console.log("[AWS-SERVICE] Iniciando modulo AWS Service");
 console.log("[AWS-SERVICE] AWS_REGION:", process.env.AWS_REGION);
 console.log("[AWS-SERVICE] SNS_TOPIC_ARN:", process.env.SNS_TOPIC_ARN);
 console.log("[AWS-SERVICE] SQS_QUEUE_URL:", process.env.SQS_QUEUE_URL);
+console.log("[AWS-SERVICE] SQS_EXPORT_QUEUE_URL:", process.env.SQS_EXPORT_QUEUE_URL);
 console.log("[AWS-SERVICE] AWS_ACCESS_KEY_ID set:", !!process.env.AWS_ACCESS_KEY_ID);
 console.log("[AWS-SERVICE] AWS_SECRET_ACCESS_KEY set:", !!process.env.AWS_SECRET_ACCESS_KEY);
 console.log("[AWS-SERVICE] AWS_SESSION_TOKEN set:", !!process.env.AWS_SESSION_TOKEN);
@@ -83,11 +84,11 @@ export const encolarGasto = async (userId, expenseId, amount, category, descript
 export const encolarExportacionSQS = async (userId, filtros) => {
   console.log("[SQS-EXPORT] Iniciando encolado de exportacion");
   console.log("[SQS-EXPORT] UserId:", userId, "Filtros:", filtros);
-  console.log("[SQS-EXPORT] QueueUrl:", process.env.SQS_QUEUE_URL);
+  console.log("[SQS-EXPORT] QueueUrl:", process.env.SQS_EXPORT_QUEUE_URL);
   try {
     const result = await sqs.send(
       new SendMessageCommand({
-        QueueUrl: process.env.SQS_QUEUE_URL,
+        QueueUrl: process.env.SQS_EXPORT_QUEUE_URL,
         MessageBody: JSON.stringify({
           tipo: "exportacion_gastos",
           userId,
