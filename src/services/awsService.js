@@ -79,3 +79,28 @@ export const encolarGasto = async (userId, expenseId, amount, category, descript
     console.error("[SQS-GASTO] ERROR completo:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
   }
 };
+
+export const encolarExportacionSQS = async (userId, filtros) => {
+  console.log("[SQS-EXPORT] Iniciando encolado de exportacion");
+  console.log("[SQS-EXPORT] UserId:", userId, "Filtros:", filtros);
+  console.log("[SQS-EXPORT] QueueUrl:", process.env.SQS_QUEUE_URL);
+  try {
+    const result = await sqs.send(
+      new SendMessageCommand({
+        QueueUrl: process.env.SQS_QUEUE_URL,
+        MessageBody: JSON.stringify({
+          tipo: "exportacion_gastos",
+          userId,
+          filtros: filtros || {},
+          timestamp: new Date().toISOString()
+        })
+      })
+    );
+    console.log("[SQS-EXPORT] EXITO! MessageId:", result.MessageId);
+  } catch (error) {
+    console.error("[SQS-EXPORT] ERROR nombre:", error.name);
+    console.error("[SQS-EXPORT] ERROR mensaje:", error.message);
+    console.error("[SQS-EXPORT] ERROR code:", error.Code || error.$metadata?.httpStatusCode);
+    console.error("[SQS-EXPORT] ERROR completo:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+  }
+};

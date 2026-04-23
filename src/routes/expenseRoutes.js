@@ -3,6 +3,7 @@ import { body, param, query } from "express-validator";
 import {
   createExpense,
   deleteExpense,
+  exportExpenses,
   getExpenses,
   updateExpense
 } from "../controllers/expenseController.js";
@@ -56,6 +57,18 @@ router.delete(
   [param("id").isMongoId().withMessage("Invalid expense id")],
   validateRequest,
   deleteExpense
+);
+
+router.post(
+  "/export",
+  protect,
+  [
+    body("fechaInicio").optional().isISO8601().withMessage("fechaInicio must be a valid date"),
+    body("fechaFin").optional().isISO8601().withMessage("fechaFin must be a valid date"),
+    body("categoria").optional().trim().escape()
+  ],
+  validateRequest,
+  exportExpenses
 );
 
 export default router;

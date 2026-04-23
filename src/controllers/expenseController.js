@@ -1,6 +1,6 @@
 import Expense from "../models/Expense.js";
 import User from "../models/User.js";
-import { encolarGasto } from "../services/awsService.js";
+import { encolarGasto, encolarExportacionSQS } from "../services/awsService.js";
 
 export const getExpenses = async (req, res, next) => {
   try {
@@ -80,6 +80,22 @@ export const deleteExpense = async (req, res, next) => {
     }
 
     return res.json({ message: "Expense deleted" });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const exportExpenses = async (req, res, next) => {
+  try {
+    const { fechaInicio, fechaFin, categoria } = req.body;
+    const filtros = {};
+    if (fechaInicio) filtros.fechaInicio = fechaInicio;
+    if (fechaFin) filtros.fechaFin = fechaFin;
+    if (categoria) filtros.categoria = categoria;
+
+    await encolarExportacionSQS(req.user.id, filtros);
+
+    return res.json({ message: "Exportación iniciada. Recibirás el enlace por email." });
   } catch (error) {
     return next(error);
   }
