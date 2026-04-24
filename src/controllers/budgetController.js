@@ -34,7 +34,18 @@ export const getCurrentBudget = async (req, res, next) => {
     const year = now.getFullYear();
 
     const budget = await Budget.findOne({ user: req.user.id, month, year });
-    const amount = budget?.amount || 0;
+
+    if (!budget) {
+      return res.json({
+        budget: null,
+        spent: 0,
+        remaining: 0,
+        percentageUsed: 0,
+        exceeded: false
+      });
+    }
+
+    const amount = budget.amount;
     const summary = await calculateBudgetSummary(req.user.id, year, month, amount);
 
     return res.json({
