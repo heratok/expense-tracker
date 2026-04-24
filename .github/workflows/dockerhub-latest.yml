@@ -1,6 +1,3 @@
-# Workflow deshabilitado temporalmente
-# Para habilitar, cambiar nombre a dockerhub-latest.yml
-
 name: Build and Push to Docker Hub
 
 on:
@@ -10,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/expense-tracker
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/expense-tracker
 
 jobs:
   build:
@@ -22,7 +19,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login a Docker Hub
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -34,4 +31,6 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ env.IMAGE_NAME }}:latest
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
